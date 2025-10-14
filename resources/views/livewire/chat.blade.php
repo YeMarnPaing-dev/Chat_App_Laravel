@@ -53,12 +53,13 @@
         </div>
 
         <div class="p-4 bg-white border-t">
-            <form id="chat-form" class="flex items-center space-x-2">
+            <form wire:submit="submit" id="chat-form" class="flex items-center space-x-2">
                 <input
+                    wire:model="newMessage"
                     type="text"
                     id="message-input"
                     placeholder="Type your message..."
-                    class="flex-1 border border-gray-300 rounded-full px-4 py-2 focus:outline-none focus:ring focus:ring-blue-200"
+                    class="flex-1 border text-black border-gray-300 rounded-full px-4 py-2 focus:outline-none focus:ring focus:ring-blue-200"
                 >
                 <button
                     type="submit"
