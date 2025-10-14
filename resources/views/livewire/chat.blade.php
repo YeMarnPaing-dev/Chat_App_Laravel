@@ -48,9 +48,19 @@
             </div>
         </div>
 
-        <div id="chat-box" class="flex-1 overflow-y-auto p-6 space-y-3 bg-white">
-            <p class="text-gray-400 text-center mt-10">No messages yet...</p>
+    <div id="chat-box" class="flex-1 overflow-y-auto p-6 space-y-3 bg-white">
+    @foreach ($messages as $message)
+        <div class="flex {{ $message->send_id == Auth::id() ? 'justify-end' : 'justify-start' }}">
+            <div class="px-4 py-2 rounded-2xl max-w-xs break-words
+                        {{ $message->send_id == Auth::id()
+                            ? 'bg-blue-500 text-white rounded-br-none'
+                            : 'bg-blue-500 text-white-800 rounded-bl-none' }}">
+                {{ $message->message }}
+            </div>
         </div>
+    @endforeach
+</div>
+
 
         <div class="p-4 bg-white border-t">
             <form wire:submit="submit" id="chat-form" class="flex items-center space-x-2">
