@@ -110,3 +110,13 @@
 
 
 </div>
+
+<!-- chat.blade.php -->
+<script>
+    document.addEventListener('livewire:initialized', () => {
+        Livewire.on('userTyping', (event) => {
+            console.log('User typing:', event);
+        });
+    });
+</script>
+
