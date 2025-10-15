@@ -10,65 +10,81 @@ use Illuminate\Support\Facades\Auth;
 
 class Chat extends Component
 {
-      public $users;
-      public $selectedUser;
-      public $newMessage;
-      public $messages;
-      public $authId;
-      public $loginId;
+    public $users;
+    public $selectedUser;
+    public $newMessage;
+    public $messages;
+    public $authId;
+    public $loginId;
 
-        public function mount(){
-            $this->users= User::whereNot('id',Auth::id())->latest()->get();
-            $this->selectedUser=$this->users->first();
-             $this->loadMessages();
-             $this->loginId = Auth::id();
-
-        }
-
-         public function select($id)
+    public function mount()
     {
-         $this->selectedUser= User::find($id);
-         $this->loadMessages();
+        $this->authId = Auth::id();
+        $this->loginId = $this->authId;
+
+        $this->users = User::where('id', '!=', $this->authId)
+            ->latest()
+            ->get();
+
+        $this->selectedUser = $this->users->first();
+        if ($this->selectedUser) {
+            $this->loadMessages();
+        }
     }
 
-    public function loadMessages(){
-           $this->messages=ChatMessage::query()
-            ->where(function($q){
-                $q->where('sender_id',Auth::id())
-                ->where('receiver_id',$this->selectedUser->id);
+    public function select($id)
+    {
+        $this->selectedUser = User::find($id);
+        $this->loadMessages();
+    }
+
+    public function loadMessages()
+    {
+        if (!$this->selectedUser) return;
+
+        $this->messages = ChatMessage::query()
+            ->where(function ($q) {
+                $q->where('sender_id', $this->authId)
+                  ->where('receiver_id', $this->selectedUser->id);
             })
-            ->orWhere(function($q){
-                $q->where('sender_id',$this->selectedUser->id)
-                ->where('receiver_id',Auth::id());
+            ->orWhere(function ($q) {
+                $q->where('sender_id', $this->selectedUser->id)
+                  ->where('receiver_id', $this->authId);
             })
             ->get();
     }
 
-    public function submit(){
-           if (!$this->newMessage) return;
-      $message=ChatMessage::create([
-            'sender_id'=>Auth::id(),
-            'receiver_id'=>$this->selectedUser->id,
-            'message'=>$this->newMessage
+    public function submit()
+    {
+        if (!$this->newMessage || !$this->selectedUser) return;
+
+        $message = ChatMessage::create([
+            'sender_id' => $this->authId,
+            'receiver_id' => $this->selectedUser->id,
+            'message' => $this->newMessage,
         ]);
 
         $this->messages->push($message);
+        $this->newMessage = '';
 
-        $this->newMessage='';
-
-      broadcast(new MessageSent($message));
+        broadcast(new MessageSent($message));
     }
 
-    public function getListeners(){
+    // ✅ FIXED: Use string concatenation instead of placeholders
+    public function getListeners()
+    {
         return [
-            'echo-private:chat.{$this->loginId},MessageSent' => 'newChatMessageNotification'
+            "echo-private:chat.{$this->loginId},MessageSent" => 'newChatMessageNotification',
         ];
     }
 
-    public function newChatMessageNotification($messge){
-        if($message['sender_id'] == $this->selectedUser->id){
-            $messageObj = ChatMessage::find($messge['id']);
-            $this->messages->push($messageObj);
+    public function newChatMessageNotification($message)
+    {
+        if ($message['sender_id'] == $this->selectedUser->id) {
+            $messageObj = ChatMessage::find($message['id']);
+            if ($messageObj) {
+                $this->messages->push($messageObj);
+            }
         }
     }
 
