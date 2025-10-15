@@ -52,9 +52,9 @@
     @foreach ($messages as $message)
         <div class="flex {{ $message->sender_id == Auth::id() ? 'justify-end' : 'justify-start' }}">
             <div class="px-4 py-2 rounded-2xl max-w-xs break-words
-                        {{ $message->send_id == Auth::id()
+                        {{  $message->sender_id == Auth::id()
                             ? 'bg-blue-500 text-white rounded-br-none'
-                            : 'bg-blue-500 text-white-800 rounded-bl-none' }}">
+                            : 'bg-blue-300 text-white-800 rounded-bl-none' }}">
                 {{ $message->message }}
             </div>
         </div>
