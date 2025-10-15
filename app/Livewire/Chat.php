@@ -88,6 +88,10 @@ class Chat extends Component
         }
     }
 
+    public function updatedNewMessage($value){
+    $this->dispath('userTyping',userId: $this->loginId,userName:Auth::id(),selectedUserId: $this->selectedUser->id);
+    }
+
     public function render()
     {
         return view('livewire.chat');

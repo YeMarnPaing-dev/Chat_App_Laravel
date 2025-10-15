@@ -61,11 +61,13 @@
     @endforeach
 </div>
 
+<div id="typing-indicator" class="px-4 pb-1 text-xs text-gray-400 italic"></div>
+
 
         <div class="p-4 bg-white border-t">
             <form wire:submit="submit" id="chat-form" class="flex items-center space-x-2">
                 <input
-                    wire:model="newMessage"
+                    wire:model.live="newMessage"
                     type="text"
                     id="message-input"
                     placeholder="Type your message..."
