@@ -116,7 +116,16 @@
     document.addEventListener('livewire:initialized', () => {
         Livewire.on('userTyping', (event) => {
             console.log('User typing:', event);
+            window.Echo.private('chat.${event.selectedUserId}').whisper('typing',{
+                userId: event.userId,
+                userName:event.userName
+            });
         });
+
+        window.Echo.private('chat.{{$loginId}}').listenForWhisper('typing',(event)=>{
+            var t = document.getElementById('typing-indicator');
+            t.innerText=`$(event.userName)is Typing.....`;
+        })
     });
 </script>
 
