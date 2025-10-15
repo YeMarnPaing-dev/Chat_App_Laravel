@@ -54,7 +54,7 @@
             <div class="px-4 py-2 rounded-2xl max-w-xs break-words
                         {{  $message->sender_id == Auth::id()
                             ? 'bg-blue-500 text-white rounded-br-none'
-                            : 'bg-blue-300 text-white-800 rounded-bl-none' }}">
+                            : 'bg-gray-200 text-gray-800 rounded-bl-none' }}">
                 {{ $message->message }}
             </div>
         </div>

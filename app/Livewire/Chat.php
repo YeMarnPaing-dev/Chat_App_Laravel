@@ -38,7 +38,7 @@ class Chat extends Component
                 $q->where('sender_id',$this->selectedUser->id)
                 ->where('receiver_id',Auth::id());
             })
-            ->latest()->get();
+            ->get();
     }
 
     public function submit(){
