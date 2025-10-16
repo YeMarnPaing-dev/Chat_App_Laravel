@@ -3,16 +3,16 @@
 namespace App\Livewire;
 
 use App\Models\User;
-use Livewire\Component;
-use App\Events\MessageSent;
 use App\Models\ChatMessage;
+use App\Events\MessageSent;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Component;
 
 class Chat extends Component
 {
     public $users;
     public $selectedUser;
-    public $newMessage;
+    public $newMessage = '';
     public $messages;
     public $authId;
     public $loginId;
@@ -26,15 +26,15 @@ class Chat extends Component
             ->latest()
             ->get();
 
-        $this->selectedUser = $this->users->first();
-        if ($this->selectedUser) {
+        if ($this->users->isNotEmpty()) {
+            $this->selectedUser = $this->users->first();
             $this->loadMessages();
         }
     }
 
     public function select($id)
     {
-        $this->selectedUser = User::find($id);
+        $this->selectedUser = User::findOrFail($id);
         $this->loadMessages();
     }
 
@@ -51,26 +51,27 @@ class Chat extends Component
                 $q->where('sender_id', $this->selectedUser->id)
                   ->where('receiver_id', $this->authId);
             })
+            ->orderBy('created_at', 'asc')
             ->get();
     }
 
     public function submit()
     {
-        if (!$this->newMessage || !$this->selectedUser) return;
+        if (empty(trim($this->newMessage)) || !$this->selectedUser) return;
 
         $message = ChatMessage::create([
             'sender_id' => $this->authId,
             'receiver_id' => $this->selectedUser->id,
-            'message' => $this->newMessage,
+            'message' => trim($this->newMessage),
         ]);
 
         $this->messages->push($message);
         $this->newMessage = '';
 
-        broadcast(new MessageSent($message));
+        // Safely broadcast message
+        broadcast(new MessageSent($message))->toOthers();
     }
 
-    // ✅ FIXED: Use string concatenation instead of placeholders
     public function getListeners()
     {
         return [
@@ -80,7 +81,7 @@ class Chat extends Component
 
     public function newChatMessageNotification($message)
     {
-        if ($message['sender_id'] == $this->selectedUser->id) {
+        if ($this->selectedUser && $message['sender_id'] == $this->selectedUser->id) {
             $messageObj = ChatMessage::find($message['id']);
             if ($messageObj) {
                 $this->messages->push($messageObj);
@@ -88,14 +89,16 @@ class Chat extends Component
         }
     }
 
- public function updatedNewMessage($value)
-{
-    $this->dispatch('userTyping', [
-        'userId' => $this->loginId,
-        'userName' => Auth::user()->name ?? Auth::id(),
-        'selectedUserId' => $this->selectedUser->id,
-    ]);
-}
+    public function updatedNewMessage($value)
+    {
+        if (!$this->selectedUser) return;
+
+        $this->dispatch('userTyping', [
+            'userId' => $this->loginId,
+            'userName' => Auth::user()->name ?? "User {$this->loginId}",
+            'selectedUserId' => $this->selectedUser->id,
+        ]);
+    }
 
     public function render()
     {
